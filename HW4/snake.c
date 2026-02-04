@@ -57,13 +57,25 @@
 #include <stdlib.h>
 #include <time.h>
 //#include <ncurses/ncurses.h>
-#include <ncurses.h>
+//~ #include <ncurses.h>
+//-----
+#include <ncursesw/ncurses.h>  // Широкие символы
+#include <wchar.h> // Широкие символы
+//-----
 #include <inttypes.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h> // for toupper()
+#include <locale.h>
 
-#define NUM_SNAKES 2
+#define NUM_SNAKES 2 // количество змеек
+#define CONTROLS 4   // количество типов управления (стрелки, WASD, wasd ...)
+
+/*
+ * Предпологаю, что змейка не привязана жестко к своему типу управления
+ * и для каждой змейки, в будущем, межно будет задавать свой тип управления*/
+
+
 #define MIN_Y  2  // Minimum Y coordinate to avoid writing over instructions
 enum {LEFT=1, UP, RIGHT, DOWN, STOP_GAME=KEY_F(10)};
 enum {MAX_TAIL_SIZE=100, START_TAIL_SIZE=3, MAX_FOOD_SIZE=20, FOOD_EXPIRE_SECONDS=10};
@@ -77,10 +89,18 @@ struct control_buttons {
 };
 
 // Standard control keys
-struct control_buttons default_controls[NUM_SNAKES] = {
-    {KEY_DOWN, KEY_UP, KEY_LEFT, KEY_RIGHT},     // arrows for first snake
-    {'s', 'w', 'a', 'd',
-	 'S', 'W', 'A', 'D'}                       // WASD for second snake
+struct control_buttons default_controls[CONTROLS] = {
+    // Тип 0: Стрелки
+    {KEY_DOWN, KEY_UP, KEY_LEFT, KEY_RIGHT},
+
+    // Тип 1: WASD строчные (только строчные англ)
+    {'s', 'w', 'a', 'd'},
+
+    // Тип 2: WASD заглавные (только заглавные англ)
+    {'S', 'W', 'A', 'D'},
+
+    // Тип 3: УНИВЕРСАЛЬНЫЙ WASD (оба регистра + русские)
+    {'s', 'w', 'a', 'd'}  // Базовые - строчные, но будем проверять все варианты
 };
 
 // Structure for one tail segment
@@ -91,15 +111,16 @@ typedef struct tail_t {
 
 // Snake structure
 typedef struct snake_t {
-    int x;  // head X coordinate
-    int y;  // head Y coordinate
-    int direction; // movement direction
-    size_t tsize;  // current tail size
-    struct tail_t *tail; // tail array
+    int x;                      // head X coordinate
+    int y;                      // head Y coordinate
+    int direction;              // movement direction
+    size_t tsize;               // current tail size
+    struct tail_t *tail;        // tail array
     struct control_buttons controls; // control keys
-    int color_pair; // snake color
-    int score;      // player score
-    int is_alive;   // whether snake is alive
+    int control_type;           // ← ДОБАВЛЯЕМ ЭТО: индекс типа управления (0, 1, 2, 3...)
+    int color_pair;             // snake color
+    int score;                  // player score
+    int is_alive;               // whether snake is alive
 } snake_t;
 
 // Food structure
@@ -121,6 +142,57 @@ clock_t last_frame_time = 0;
 
 // ------------------------- FUNCTION NEW -------------------------
 
+// Вспомогательная функция: получить направление из клавиши
+// Получить направление из клавиши для конкретной змейки
+int getDirectionFromKeyForSnake(const snake_t* snake, int32_t key) {
+    if (!snake || snake->control_type == -1) return -1;
+
+    int type = snake->control_type;
+
+    // Проверяем клавиши в зависимости от типа управления
+    switch(type) {
+        case 0:  // Тип 0: Стрелки
+            if (key == KEY_DOWN) return DOWN;
+            if (key == KEY_UP) return UP;
+            if (key == KEY_RIGHT) return RIGHT;
+            if (key == KEY_LEFT) return LEFT;
+            break;
+
+        case 1:  // Тип 1: WASD строчные (только строчные англ)
+            if (key == 's') return DOWN;
+            if (key == 'w') return UP;
+            if (key == 'd') return RIGHT;
+            if (key == 'a') return LEFT;
+            break;
+
+        case 2:  // Тип 2: WASD заглавные (только заглавные англ)
+            if (key == 'S') return DOWN;
+            if (key == 'W') return UP;
+            if (key == 'D') return RIGHT;
+            if (key == 'A') return LEFT;
+            break;
+
+        case 3:  // Тип 3: УНИВЕРСАЛЬНЫЙ WASD (оба регистра + русские)
+            // Английские буквы (оба регистра)
+            if (key == 's' || key == 'S') return DOWN;
+            if (key == 'w' || key == 'W') return UP;
+            if (key == 'd' || key == 'D') return RIGHT;
+            if (key == 'a' || key == 'A') return LEFT;
+
+            // Русские буквы
+            if (key == 1099 || key == 1067) return DOWN;  // Ы ы
+            if (key == 1094 || key == 1062) return UP;    // Ц ц
+            if (key == 1092 || key == 1060) return LEFT;  // Ф ф
+            if (key == 1074 || key == 1042) return RIGHT; // В в
+            break;
+
+        default:
+            return -1; // Неизвестный тип
+    }
+
+    return -1; // Клавиша не соответствует этому типу управления
+}
+
 // Проверка, не является ли новое направление противоположным текущему
 int isValidDirection(int current_dir, int new_dir) {
     // Если змея движется влево, нельзя сразу пойти вправо
@@ -135,11 +207,34 @@ int isValidDirection(int current_dir, int new_dir) {
     return 1;
 }
 
+// Основная функция проверки
+int checkDirection(snake_t* snake, int32_t key) {
+    if (!snake || !snake->is_alive) return 0;
+
+    // 1. Получаем направление из клавиши для ЭТОГО типа управления
+    int new_dir = getDirectionFromKeyForSnake(snake, key);
+    if (new_dir == -1) return 0; // Эта клавиша не для этой змейки
+
+    // 2. Проверяем, не противоположное ли это направление
+    return isValidDirection(snake->direction, new_dir);
+}
+
 // Реализация timeout через clock
 int getch_with_timeout(int milliseconds) {
     if (milliseconds <= 0) {
         nodelay(stdscr, milliseconds == 0);
-        return getch();
+        wint_t ch;
+        int ret = wget_wch(stdscr, &ch);
+        nodelay(stdscr, FALSE);
+        
+        if (ret == KEY_CODE_YES) {
+            // Это специальная клавиша (стрелки, F10)
+            return (int)ch;
+        } else if (ret == OK) {
+            // Это обычный символ
+            return (int)ch;
+        }
+        return ERR;
     }
     
     clock_t start = clock();
@@ -147,28 +242,24 @@ int getch_with_timeout(int milliseconds) {
     
     nodelay(stdscr, TRUE);
     
-    // Основной цикл с минимальными вычислениями
     while (1) {
-        // Проверяем ввод
-        int ch = getch();
-        if (ch != ERR) {
+        wint_t ch;
+        int ret = wget_wch(stdscr, &ch);
+        
+        if (ret == KEY_CODE_YES || ret == OK) {
             nodelay(stdscr, FALSE);
-            return ch;
+            return (int)ch;
         }
         
-        // Проверяем время - один вызов clock() за цикл
         long long elapsed = (long long)(clock() - start);
         if (elapsed >= timeout_ticks) {
             nodelay(stdscr, FALSE);
             return ERR;
         }
-        
-        // Чистый busy-wait - НИКАКОГО usleep!
-        // Это позволяет максимально быстро реагировать на ввод
     }
 }
 
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 // Function to play sound signal
 void playSound(int type) {
@@ -226,15 +317,37 @@ void initSnake(snake_t *head, size_t size, int x, int y, int color_pair) {
     head->tail = tail;
     head->tsize = size+1; // initial tail
     head->color_pair = color_pair;
+    head->control_type = -1;  // Инициализируем как "не назначен"
 }
 
 // Initialize all snakes
 void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size) {
     for (size_t i = 0; i < num_snakes; i++) {
-        int start_x = 10 + i * 20;  // Different start positions
+        int start_x = 10 + i * 20;
         int start_y = 10 + i * 5;
-        initSnake(&snakes[i], start_size, start_x, start_y, snake_colors[i]);
-        snakes[i].controls = default_controls[i];  // Different controls
+        int color_idx = i % 7;
+
+        initSnake(&snakes[i], start_size, start_x, start_y, snake_colors[color_idx]);
+
+        // НАЗНАЧАЕМ ТИП УПРАВЛЕНИЯ КАЖДОЙ ЗМЕЙКЕ
+        if (i == 0) {
+            // Змейка 0: Стрелки (тип 0)
+            snakes[i].control_type = 0;
+            snakes[i].controls = default_controls[0];
+        } else if (i == 1) {
+            // Змейка 1: УНИВЕРСАЛЬНЫЙ WASD (тип 3)
+            snakes[i].control_type = 3;
+            snakes[i].controls = default_controls[3];
+        }
+        // Для будущих змеек можно добавить:
+        // else if (i == 2) {
+        //     snakes[i].control_type = 1; // WASD строчные
+        //     snakes[i].controls = default_controls[1];
+        // }
+        // else if (i == 3) {
+        //     snakes[i].control_type = 2; // WASD заглавные
+        //     snakes[i].controls = default_controls[2];
+        // }
     }
 }
 
@@ -290,56 +403,17 @@ void go(snake_t *head) {
 
 // Change direction for all snakes
 void changeAllDirections(snake_t snakes[], size_t num_snakes, const int32_t key) {
+    // Для каждой змейки
     for (size_t i = 0; i < num_snakes; i++) {
-        if (!snakes[i].is_alive) continue; // Skip dead snakes
-		
-		int new_direction = -1; // переменная для нового направления
-		
-        // For second snake (WASD) handle both English and Russian layouts
-        if (i == 1) {
-            // Handle WASD in any layout
-            switch(key) {
-                // English layout (lowercase)
-                case 'w': case 'W':
-                // Russian layout
-                case 1094: case 1062: // Ц ц in Russian layout
-                    new_direction = UP;
-                    break;
+        if (!snakes[i].is_alive) continue;
 
-                case 's': case 'S':
-                // Russian layout
-                case 1099: case 1067: // Ы ы in Russian layout
-                    new_direction = DOWN;
-                    break;
-
-                case 'a': case 'A':
-                // Russian layout
-                case 1092: case 1060: // Ф ф in Russian layout
-                    new_direction = LEFT;
-                    break;
-
-                case 'd': case 'D':
-                // Russian layout
-                case 1074: case 1042: // В в in Russian layout
-                    new_direction = RIGHT;
-                    break;
-
+        // Используем checkDirection() для проверки
+        if (checkDirection(&snakes[i], key)) {
+            // Получаем новое направление
+            int new_dir = getDirectionFromKeyForSnake(&snakes[i], key);
+            if (new_dir != -1) {
+                snakes[i].direction = new_dir;
             }
-        } else {
-            // For first snake use arrows (layout independent)
-            if (key == snakes[i].controls.down)
-                new_direction = DOWN;
-            else if (key == snakes[i].controls.up)
-                new_direction = UP;
-            else if (key == snakes[i].controls.right)
-                new_direction = RIGHT;
-            else if (key == snakes[i].controls.left)
-                new_direction = LEFT;
-        }
-        
-        // Если получено валидное направление И оно не противоположно текущему
-        if (new_direction != -1 && isValidDirection(snakes[i].direction, new_direction)) {
-            snakes[i].direction = new_direction;
         }
     }
 }
@@ -403,7 +477,7 @@ int isCrush(snake_t *snake) {
     for (size_t i = 0; i < snake->tsize; i++) {
         // Пропускаем первые 3 сегмента хвоста (чтобы можно было развернуться)
         if (i < 3) continue;
-        
+
         // Если голова находится на том же месте, что и сегмент хвоста
         if (snake->x == snake->tail[i].x && snake->y == snake->tail[i].y) {
             return 1; // Столкновение!
@@ -716,10 +790,10 @@ void playGame() {
 
     int key_pressed = 0;
     int game_over = 0;
-    
+
     // Время старта игры через clock()
     clock_t game_start_time = clock();
-    
+
     // Start background music
     if (sound_enabled) {
         playSound(4);
@@ -729,23 +803,23 @@ void playGame() {
     while (!game_over && game_running) {
         // Используем нашу функцию вместо timeout(100)
         key_pressed = getch_with_timeout(100);
-        
+
         // Проверяем выход
         if (key_pressed == STOP_GAME) {
             break;
         }
-        
+
         // Check sound toggle
         if (key_pressed == 'm' || key_pressed == 'M') {
             sound_enabled = !sound_enabled;
             mvprintw(2, 0, "Sound %s", sound_enabled ? "ON" : "OFF");
         }
-        
+
         // Обрабатываем управление
         if (key_pressed != ERR) {
             changeAllDirections(snakes, NUM_SNAKES, key_pressed);
         }
-        
+
         // Двигаем змею
         for (size_t i = 0; i < NUM_SNAKES; i++) {
             if (snakes[i].is_alive) {
@@ -758,7 +832,7 @@ void playGame() {
         clear();
         mvprintw(0, 0, "P1: %d | P2: %d | M-sound | F10-exit",
                  snakes[0].score, snakes[1].score);
-        
+
         // Время игры через clock()
         clock_t current_time = clock();
         long game_ticks = current_time - game_start_time;
@@ -778,9 +852,9 @@ void playGame() {
         }
 
         refresh();
-        
+
     }
-    
+
     // ===================== GAME OVER ==========================
     if (game_over) {
         clear();
@@ -814,7 +888,7 @@ void playGame() {
     for (size_t i = 0; i < NUM_SNAKES; i++) {
         free(snakes[i].tail);
     }
-    
+
     // Убедимся, что вернули нормальный режим
     nodelay(stdscr, FALSE);
 }
@@ -822,6 +896,25 @@ void playGame() {
 
 // ======================= MAIN FUNCTION ==========================
 int main(){
+	// Для правильных кодов клавиш русской раскладки: 
+	// Ы ы: 1099, 1067
+	// Ц ц: 1094, 1062
+	// Ф ф: 1092, 1060
+	// В в: 1074, 1042
+	
+	// Без использования этого подхода коды клавиш будут 3-х значными
+	// а по условию задачи они должны быть 4-х значными
+	
+	setlocale(LC_ALL, "");  // Включить локализацию
+	srand(time(NULL));
+	initscr();
+    keypad(stdscr, TRUE);
+    raw();
+    noecho();
+    curs_set(FALSE);
+    
+    //------------------------------------------------
+    
     srand(time(NULL)); // random number generator
 
     // Initialize curses
