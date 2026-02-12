@@ -267,8 +267,6 @@ void playGame(void)
     int max_x = 0, max_y = 0;
     getmaxyx(stdscr, max_y, max_x);
 
-    // Initialize food for this game
-    initFood(foods, MAX_FOOD_SIZE);
     refreshFood(foods, MAX_FOOD_SIZE, max_x, max_y);
 
     int key_pressed = 0;

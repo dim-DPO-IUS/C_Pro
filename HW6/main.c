@@ -132,7 +132,7 @@ int main()
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
     init_pair(8, COLOR_RED, COLOR_BLACK); // Food
 
-    //
+    //Initialize food for this game
     initFood(foods, MAX_FOOD_SIZE);
 
     // Show welcome screen on startup
