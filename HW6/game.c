@@ -23,7 +23,6 @@ struct control_buttons default_controls[CONTROLS] = {
     { 's', 'w', 'a', 'd' } // Базовые - строчные, но будем проверять все варианты
 };
 
-
 // Реализация timeout через clock
 int getch_with_timeout(int milliseconds)
 {
@@ -256,12 +255,8 @@ int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y
 
 // Main game function
 //================================================================
-void playGame(void)
+void playGame(snake_t snakes[])
 {
-    // Initialize two snakes
-    snake_t snakes[NUM_SNAKES];
-    initAllSnakes(snakes, NUM_SNAKES, START_TAIL_SIZE);
-
     int max_x = 0, max_y = 0;
     getmaxyx(stdscr, max_y, max_x);
 

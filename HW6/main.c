@@ -145,8 +145,12 @@ int main()
 
         if (menu_result == 1)
         {
+            // ИНИЦИАЛИЗАЦИЯ ВСЕХ ДАННЫХ - ВСЁ В ОДНОМ МЕСТЕ!
+            snake_t snakes[NUM_SNAKES];
+            initAllSnakes(snakes, NUM_SNAKES, START_TAIL_SIZE);
+            
             // Start game
-            playGame();
+            playGame(snakes);
         }
         else if (menu_result == 2)
         {

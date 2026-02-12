@@ -31,6 +31,6 @@ int checkAllFood(snake_t snakes[], size_t num_snakes, food_t* food);
 int checkWallCollision(snake_t* snake, int max_x, int max_y);
 int checkSnakeEatSnake(snake_t snakes[], size_t num_snakes);
 int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y);
-void playGame(void);
+void playGame(snake_t snakes[]); 
 
 #endif // GAME_H
