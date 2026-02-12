@@ -1,4 +1,3 @@
-
 /*
  * 1. Доработать функционал игры "Змейка", реализовать в игре ситуацию, когда змея
  * врезается сама в себя. 2.Выход за границы экрана.
@@ -59,50 +58,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-// #include <ncurses/ncurses.h>
-//~ #include <ncurses.h>
-//-----
-#include <ncursesw/ncurses.h> // Широкие символы
-#include <wchar.h> // Широкие символы
-//-----
-#include <ctype.h> // for toupper()
+#include <ncursesw/ncurses.h>
+#include <wchar.h>
+#include <ctype.h>
 #include <inttypes.h>
 #include <locale.h>
 #include <string.h>
 #include <unistd.h>
-//-----
+
 #include "snake.h"
 #include "menu.h"
 #include "game.h"
 #include "food.h"
-//-----
 
-// нужно для использования функции wget_wch
 #define _XOPEN_SOURCE_EXTENDED 1
 
-#define NUM_SNAKES 2 // количество змеек
-#define CONTROLS 4 // количество типов управления (стрелки, WASD, wasd ...)
+// Убираем дублирующие определения констант
 
-// Для управления временем через clock()
-#define GAME_SPEED 100 // 100ms между кадрами (10 FPS)
-
-// struct food foods[MAX_FOOD_SIZE];
-
-// ======================= MAIN FUNCTION ==========================
 int main()
 {
-    setlocale(LC_ALL, ""); // Включить локализацию
-    //------------------------------------------------
-    srand(time(NULL)); // random number generator
+    setlocale(LC_ALL, "");
+    
+    srand(time(NULL));
 
-    // Initialize curses
     initscr();
     keypad(stdscr, TRUE);
     raw();
     noecho();
     curs_set(FALSE);
 
-    // Check color support
     if (!has_colors())
     {
         endwin();
@@ -110,9 +94,7 @@ int main()
         return 1;
     }
 
-    // Enable color and set color pairs
     start_color();
-    // Use standard ncurses color constants
     init_pair(1, COLOR_GREEN, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
     init_pair(3, COLOR_YELLOW, COLOR_BLACK);
@@ -120,43 +102,34 @@ int main()
     init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
     init_pair(6, COLOR_CYAN, COLOR_BLACK);
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
-    init_pair(8, COLOR_RED, COLOR_BLACK); // Food
+    init_pair(8, COLOR_RED, COLOR_BLACK);
 
-    //Initialize food for this game
     initFood(foods, MAX_FOOD_SIZE);
 
-    // Show welcome screen on startup
     showWelcomeScreen();
 
-    // Main program loop
     while (game_running)
     {
         int menu_result = startMenu();
 
         if (menu_result == 1)
         {
-            // СОЗДАЕМ И ИНИЦИАЛИЗИРУЕМ ЗМЕЕК ПЕРЕД КАЖДОЙ ИГРОЙ
             snake_t snakes[NUM_SNAKES];
             initAllSnakes(snakes, NUM_SNAKES, START_TAIL_SIZE);
             
-            // Start game
             playGame(snakes);
         }
         else if (menu_result == 2)
         {
-            // При рестарте сбрасываем только еду
             initFood(foods, MAX_FOOD_SIZE);
-
-            // Restart (do nothing, just continue loop)
             continue;
         }
         else
         {
-            // Exit
             game_running = 0;
         }
     }
 
-    endwin(); // end curses mode
+    endwin();
     return 0;
 }

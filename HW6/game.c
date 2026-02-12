@@ -8,22 +8,13 @@
 #include <string.h>
 #include <unistd.h>
 
-// Standard control keys
 struct control_buttons default_controls[CONTROLS] = {
-    // Тип 0: Стрелки
     { KEY_DOWN, KEY_UP, KEY_LEFT, KEY_RIGHT },
-
-    // Тип 1: WASD строчные (только строчные англ)
     { 's', 'w', 'a', 'd' },
-
-    // Тип 2: WASD заглавные (только заглавные англ)
     { 'S', 'W', 'A', 'D' },
-
-    // Тип 3: УНИВЕРСАЛЬНЫЙ WASD (оба регистра + русские)
-    { 's', 'w', 'a', 'd' } // Базовые - строчные, но будем проверять все варианты
+    { 's', 'w', 'a', 'd' }
 };
 
-// Реализация timeout через clock
 int getch_with_timeout(int milliseconds)
 {
     if (milliseconds <= 0)
@@ -33,11 +24,7 @@ int getch_with_timeout(int milliseconds)
         int ret = wget_wch(stdscr, &ch);
         nodelay(stdscr, FALSE);
 
-        if (ret == KEY_CODE_YES)
-        {
-            return (int)ch;
-        }
-        else if (ret == OK)
+        if (ret == KEY_CODE_YES || ret == OK)
         {
             return (int)ch;
         }
@@ -69,7 +56,6 @@ int getch_with_timeout(int milliseconds)
     }
 }
 
-// Initialize all snakes
 void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size)
 {
     for (size_t i = 0; i < num_snakes; i++)
@@ -93,23 +79,8 @@ void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size)
     }
 }
 
-// Generate food at random position
-void spawnFood(food_t* food, int max_x, int max_y)
-{
-    food->x = rand() % max_x;
-    food->y = (rand() % (max_y - MIN_Y)) + MIN_Y;
-    food->symbol = '#';
-}
+// Удаляем неиспользуемые функции spawnFood() и drawFood()
 
-// Draw food on screen
-void drawFood(food_t* food)
-{
-    attron(COLOR_PAIR(8));
-    mvprintw(food->y, food->x, "%c", food->symbol);
-    attroff(COLOR_PAIR(8));
-}
-
-// Change direction for all snakes
 void changeAllDirections(snake_t snakes[], size_t num_snakes, const int32_t key)
 {
     for (size_t i = 0; i < num_snakes; i++)
@@ -127,7 +98,6 @@ void changeAllDirections(snake_t snakes[], size_t num_snakes, const int32_t key)
     }
 }
 
-// Draw all snakes with different colors
 void drawAllSnakes(snake_t snakes[], size_t num_snakes)
 {
     for (size_t i = 0; i < num_snakes; i++)
@@ -150,21 +120,8 @@ void drawAllSnakes(snake_t snakes[], size_t num_snakes)
     }
 }
 
-// Check food eating for all snakes
-int checkAllFood(snake_t snakes[], size_t num_snakes, food_t* food)
-{
-    for (size_t i = 0; i < num_snakes; i++)
-    {
-        if (!snakes[i].is_alive) continue;
-        if (checkFood(&snakes[i], food))
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
+// Удаляем неиспользуемую функцию checkAllFood()
 
-// Check screen boundary exit
 int checkWallCollision(snake_t* snake, int max_x, int max_y)
 {
     if (snake->x < 0 || snake->x >= max_x || snake->y < MIN_Y || snake->y >= max_y)
@@ -174,7 +131,6 @@ int checkWallCollision(snake_t* snake, int max_x, int max_y)
     return 0;
 }
 
-// Check if one snake can eat another
 int checkSnakeEatSnake(snake_t snakes[], size_t num_snakes)
 {
     int snake_eaten = 0;
@@ -221,7 +177,6 @@ int checkSnakeEatSnake(snake_t snakes[], size_t num_snakes)
     return snake_eaten;
 }
 
-// Check all collisions for all snakes
 int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y)
 {
     int alive_count = 0;
@@ -238,10 +193,11 @@ int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y
             mvprintw(2, 0, "Snake %zd crashed into wall!              ", i + 1);
         }
 
+        // Исправляем: теперь isCrush() реально проверяет столкновение
         if (isCrush(&snakes[i]))
         {
-            // This code never executes as isCrush always returns 0
             snakes[i].is_alive = 0;
+            mvprintw(2, 30, "Snake %zd crashed into itself!         ", i + 1);
         }
     }
 
@@ -253,7 +209,6 @@ int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y
     return (alive_count <= 1);
 }
 
-// Main game function
 void playGame(snake_t snakes[])
 {
     int max_x = 0, max_y = 0;
@@ -267,7 +222,6 @@ void playGame(snake_t snakes[])
 
     if (sound_enabled) playSound(4);
 
-    // ==================== MAIN GAME LOOP ======================
     while (!game_over && game_running)
     {
         key_pressed = getch_with_timeout(100);
@@ -283,7 +237,6 @@ void playGame(snake_t snakes[])
         if (key_pressed != ERR)
             changeAllDirections(snakes, NUM_SNAKES, key_pressed);
 
-        // Move all snakes
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
             if (snakes[i].is_alive)
@@ -293,7 +246,6 @@ void playGame(snake_t snakes[])
             }
         }
 
-        // Check if snakes eat food
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
             if (!snakes[i].is_alive) continue;
@@ -306,32 +258,26 @@ void playGame(snake_t snakes[])
             }
         }
 
-        // Update food (spawn new, check expiration)
         refreshFood(foods, MAX_FOOD_SIZE, max_x, max_y);
 
-        // Repair food positions (not on snakes)
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
             if (snakes[i].is_alive)
                 repairSeed(foods, MAX_FOOD_SIZE, &snakes[i]);
         }
 
-        // Drawing
         clear();
         mvprintw(0, 0, "P1: %d | P2: %d | M-sound | F10-exit", 
                  snakes[0].score, snakes[1].score);
 
-        // Game time
         clock_t current_time = clock();
         long game_ticks = current_time - game_start_time;
         int seconds = (game_ticks / CLOCKS_PER_SEC) % 60;
         int minutes = game_ticks / CLOCKS_PER_SEC / 60;
-        mvprintw(1, 0, "Time: %02d:%02d (timeout via clock)", minutes, seconds);
+        mvprintw(1, 0, "Time: %02d:%02d", minutes, seconds);
 
-        // Draw snakes
         drawAllSnakes(snakes, NUM_SNAKES);
 
-        // Draw all food
         for (int i = 0; i < MAX_FOOD_SIZE; i++)
         {
             if (foods[i].enable)
@@ -342,7 +288,6 @@ void playGame(snake_t snakes[])
             }
         }
 
-        // Check collisions
         if (checkAllCollisions(snakes, NUM_SNAKES, max_x, max_y))
         {
             game_over = 1;
@@ -352,7 +297,6 @@ void playGame(snake_t snakes[])
         refresh();
     }
 
-    // ===================== GAME OVER ==========================
     if (game_over)
     {
         clear();
@@ -362,7 +306,6 @@ void playGame(snake_t snakes[])
 
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
-            if (snakes[i].is_alive) winner = i;
             if (snakes[i].score > max_score)
             {
                 max_score = snakes[i].score;
@@ -387,10 +330,8 @@ void playGame(snake_t snakes[])
         getch();
     }
 
-    // ==================== CLEANUP ============================
     for (size_t i = 0; i < NUM_SNAKES; i++)
         free(snakes[i].tail);
 
     nodelay(stdscr, FALSE);
 }
-
