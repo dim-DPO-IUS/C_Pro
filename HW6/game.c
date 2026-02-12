@@ -23,8 +23,6 @@ struct control_buttons default_controls[CONTROLS] = {
     { 's', 'w', 'a', 'd' } // Базовые - строчные, но будем проверять все варианты
 };
 
-//
-extern struct food foods[MAX_FOOD_SIZE];
 
 // Реализация timeout через clock
 int getch_with_timeout(int milliseconds)
