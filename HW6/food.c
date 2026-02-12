@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 struct food foods[MAX_FOOD_SIZE];
 
 void initFood(struct food f[], size_t size)

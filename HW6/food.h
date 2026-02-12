@@ -3,12 +3,11 @@
 
 #include <time.h>
 #include <inttypes.h>
-#include "snake.h"  
+#include "snake.h"
 
 // Константы
 #define MAX_FOOD_SIZE 20
 #define FOOD_EXPIRE_SECONDS 10
-#define SEED_NUMBER MAX_FOOD_SIZE
 
 struct food {
     int x;
