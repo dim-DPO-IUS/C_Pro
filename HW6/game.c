@@ -1,6 +1,7 @@
 #include "game.h"
 #include "snake.h"
 #include "menu.h"
+#include "food.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -22,7 +23,8 @@ struct control_buttons default_controls[CONTROLS] = {
     { 's', 'w', 'a', 'd' } // Базовые - строчные, но будем проверять все варианты
 };
 
-struct food foods[MAX_FOOD_SIZE];
+//
+extern struct food foods[MAX_FOOD_SIZE];
 
 // Реализация timeout через clock
 int getch_with_timeout(int milliseconds)
@@ -258,15 +260,14 @@ int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y
 //================================================================
 void playGame(void)
 {
-    // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+    // Initialize two snakes
     snake_t snakes[NUM_SNAKES];
     initAllSnakes(snakes, NUM_SNAKES, START_TAIL_SIZE);
 
     int max_x = 0, max_y = 0;
     getmaxyx(stdscr, max_y, max_x);
 
-    // Инициализация множества еды
-    struct food foods[MAX_FOOD_SIZE];
+    // Initialize food for this game
     initFood(foods, MAX_FOOD_SIZE);
     refreshFood(foods, MAX_FOOD_SIZE, max_x, max_y);
 
@@ -276,28 +277,23 @@ void playGame(void)
 
     if (sound_enabled) playSound(4);
 
-    // ==================== ИГРОВОЙ ЦИКЛ ====================
+    // ==================== MAIN GAME LOOP ======================
     while (!game_over && game_running)
     {
         key_pressed = getch_with_timeout(100);
 
-        // Выход из игры
         if (key_pressed == STOP_GAME) break;
 
-        // Переключение звука
         if (key_pressed == 'm' || key_pressed == 'M')
         {
             sound_enabled = !sound_enabled;
             mvprintw(2, 0, "Sound %s", sound_enabled ? "ON" : "OFF");
         }
 
-        // Смена направления для всех змеек
         if (key_pressed != ERR)
-        {
             changeAllDirections(snakes, NUM_SNAKES, key_pressed);
-        }
 
-        // Движение всех змеек
+        // Move all snakes
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
             if (snakes[i].is_alive)
@@ -307,67 +303,56 @@ void playGame(void)
             }
         }
 
-        // ============ ПРОВЕРКА ПОЕДАНИЯ ЕДЫ ============
+        // Check if snakes eat food
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
             if (!snakes[i].is_alive) continue;
             
             if (haveEat(&snakes[i], foods))
             {
-                snakes[i].tsize++;      // Увеличиваем хвост
-                snakes[i].score += 10;  // Добавляем очки
-                playSound(1);           // Звук еды
+                snakes[i].tsize++;
+                snakes[i].score += 10;
+                playSound(1);
             }
         }
 
-        // Обновление еды (спавн новой, проверка срока годности)
+        // Update food (spawn new, check expiration)
         refreshFood(foods, MAX_FOOD_SIZE, max_x, max_y);
 
-        // Проверка корректности еды (не на змеях)
+        // Repair food positions (not on snakes)
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
             if (snakes[i].is_alive)
-            {
                 repairSeed(foods, MAX_FOOD_SIZE, &snakes[i]);
-            }
         }
 
-        // ============ ОТРИСОВКА ============
+        // Drawing
         clear();
-
-        // Интерфейс: очки
         mvprintw(0, 0, "P1: %d | P2: %d | M-sound | F10-exit", 
                  snakes[0].score, snakes[1].score);
 
-        // Время игры
+        // Game time
         clock_t current_time = clock();
         long game_ticks = current_time - game_start_time;
         int seconds = (game_ticks / CLOCKS_PER_SEC) % 60;
         int minutes = game_ticks / CLOCKS_PER_SEC / 60;
-        
-        // Счетчик еды
-        int active_food = 0;
-        for (int i = 0; i < MAX_FOOD_SIZE; i++) {
-            if (foods[i].enable) active_food++;
-        }
-        mvprintw(1, 0, "Time: %02d:%02d | Food: %d/%d", 
-                 minutes, seconds, active_food, MAX_FOOD_SIZE);
+        mvprintw(1, 0, "Time: %02d:%02d (timeout via clock)", minutes, seconds);
 
-        // Отрисовка змеек
+        // Draw snakes
         drawAllSnakes(snakes, NUM_SNAKES);
 
-        // Отрисовка всей еды
+        // Draw all food
         for (int i = 0; i < MAX_FOOD_SIZE; i++)
         {
             if (foods[i].enable)
             {
-                attron(COLOR_PAIR(8));  // Красный цвет для еды
+                attron(COLOR_PAIR(8));
                 mvprintw(foods[i].y, foods[i].x, "%c", foods[i].point);
                 attroff(COLOR_PAIR(8));
             }
         }
 
-        // Проверка столкновений
+        // Check collisions
         if (checkAllCollisions(snakes, NUM_SNAKES, max_x, max_y))
         {
             game_over = 1;
@@ -377,21 +362,17 @@ void playGame(void)
         refresh();
     }
 
-    // ==================== GAME OVER ====================
+    // ===================== GAME OVER ==========================
     if (game_over)
     {
         clear();
         
-        // Определение победителя
         int winner = -1;
         int max_score = -1;
 
         for (size_t i = 0; i < NUM_SNAKES; i++)
         {
-            if (snakes[i].is_alive)
-            {
-                winner = i;
-            }
+            if (snakes[i].is_alive) winner = i;
             if (snakes[i].score > max_score)
             {
                 max_score = snakes[i].score;
@@ -399,7 +380,6 @@ void playGame(void)
             }
         }
 
-        // Вывод результата
         if (winner != -1)
         {
             mvprintw(max_y / 2, (max_x - 20) / 2, "Snake %d wins!", winner + 1);
@@ -417,11 +397,9 @@ void playGame(void)
         getch();
     }
 
-    // ==================== ОЧИСТКА ПАМЯТИ ====================
+    // ==================== CLEANUP ============================
     for (size_t i = 0; i < NUM_SNAKES; i++)
-    {
         free(snakes[i].tail);
-    }
 
     nodelay(stdscr, FALSE);
 }

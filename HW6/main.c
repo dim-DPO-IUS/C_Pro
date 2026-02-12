@@ -86,6 +86,8 @@
 // Для управления временем через clock()
 #define GAME_SPEED 100 // 100ms между кадрами (10 FPS)
 
+struct food foods[MAX_FOOD_SIZE];
+
 // ======================= MAIN FUNCTION ==========================
 int main()
 {
@@ -129,6 +131,9 @@ int main()
     init_pair(6, COLOR_CYAN, COLOR_BLACK);
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
     init_pair(8, COLOR_RED, COLOR_BLACK); // Food
+
+    //
+    initFood(foods, MAX_FOOD_SIZE);
 
     // Show welcome screen on startup
     showWelcomeScreen();
