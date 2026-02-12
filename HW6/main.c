@@ -86,23 +86,13 @@
 // Для управления временем через clock()
 #define GAME_SPEED 100 // 100ms между кадрами (10 FPS)
 
-struct food foods[MAX_FOOD_SIZE];
+// struct food foods[MAX_FOOD_SIZE];
 
 // ======================= MAIN FUNCTION ==========================
 int main()
 {
-    // Для правильных кодов клавиш русской раскладки:
-    // Ы ы: 1099, 1067
-    // Ц ц: 1094, 1062
-    // Ф ф: 1092, 1060
-    // В в: 1074, 1042
-
-    // Без использования этого подхода коды клавиш будут 3-х значными
-    // а по условию задачи они должны быть 4-х значными
-
     setlocale(LC_ALL, ""); // Включить локализацию
     //------------------------------------------------
-
     srand(time(NULL)); // random number generator
 
     // Initialize curses
@@ -145,7 +135,7 @@ int main()
 
         if (menu_result == 1)
         {
-            // ИНИЦИАЛИЗАЦИЯ ВСЕХ ДАННЫХ - ВСЁ В ОДНОМ МЕСТЕ!
+            // СОЗДАЕМ И ИНИЦИАЛИЗИРУЕМ ЗМЕЕК ПЕРЕД КАЖДОЙ ИГРОЙ
             snake_t snakes[NUM_SNAKES];
             initAllSnakes(snakes, NUM_SNAKES, START_TAIL_SIZE);
             
@@ -154,6 +144,9 @@ int main()
         }
         else if (menu_result == 2)
         {
+            // При рестарте сбрасываем только еду
+            initFood(foods, MAX_FOOD_SIZE);
+
             // Restart (do nothing, just continue loop)
             continue;
         }

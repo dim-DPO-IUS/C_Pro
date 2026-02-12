@@ -3,6 +3,8 @@
 #include <time.h>
 
 
+struct food foods[MAX_FOOD_SIZE];
+
 void initFood(struct food f[], size_t size)
 {
     for (size_t i = 0; i < size; i++) {
