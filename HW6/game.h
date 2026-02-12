@@ -4,6 +4,7 @@
 #include <ncursesw/ncurses.h>
 #include <inttypes.h>
 #include "snake.h"
+#include "food.h"  
 
 // Константы игры
 #define NUM_SNAKES 2
@@ -17,7 +18,7 @@
 extern struct control_buttons default_controls[CONTROLS];
 
 // Глобальные переменные игры
-// extern clock_t last_frame_time;
+extern struct food foods[MAX_FOOD_SIZE];  // Объявление массива еды
 
 // Функции игровой логики
 int getch_with_timeout(int milliseconds);

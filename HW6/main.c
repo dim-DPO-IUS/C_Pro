@@ -74,6 +74,7 @@
 #include "snake.h"
 #include "menu.h"
 #include "game.h"
+#include "food.h"
 //-----
 
 // нужно для использования функции wget_wch
