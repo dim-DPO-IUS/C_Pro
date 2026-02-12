@@ -15,6 +15,8 @@ enum {
     FOOD_EXPIRE_SECONDS = 10
 };
 
+#define MIN_Y 2 // Minimum Y coordinate to avoid writing over instructions
+
 // Структура для кнопок управления (убрать struct из имени, чтобы соответствовать исходному коду)
 struct control_buttons {
     int down;

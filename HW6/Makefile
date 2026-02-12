@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -D_XOPEN_SOURCE_EXTENDED=1 -Wall -g
 LIBS = -lncursesw
 TARGET = snake_game
-SOURCES = main.c snake.c
+SOURCES = $(wildcard *.c)
 
 all: $(TARGET)
 
