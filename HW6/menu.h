@@ -6,6 +6,7 @@
 
 void playSound(int type);
 void showWelcomeScreen(void);
+void setColor(int objectType);
 int startMenu(void);
 
 #endif

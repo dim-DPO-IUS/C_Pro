@@ -98,9 +98,7 @@ void drawAllSnakes(snake_t snakes[], size_t num_snakes)
     {
         if (!snakes[i].is_alive) continue;
 
-        attron(COLOR_PAIR(snakes[i].color_pair));
-
-        mvprintw(snakes[i].y, snakes[i].x, "@");
+        setColor(i + 1);
 
         for (size_t j = 0; j < snakes[i].tsize; j++)
         {
@@ -109,6 +107,8 @@ void drawAllSnakes(snake_t snakes[], size_t num_snakes)
                 mvprintw(snakes[i].tail[j].y, snakes[i].tail[j].x, "*");
             }
         }
+        // Рисуем голову (гарантированно поверх хвоста)
+        mvprintw(snakes[i].y, snakes[i].x, "@");
 
         attroff(COLOR_PAIR(snakes[i].color_pair));
     }

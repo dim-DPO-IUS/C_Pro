@@ -88,6 +88,29 @@ void showWelcomeScreen(void)
     getch();
 }
 
+//
+void setColor(int objectType) {
+    // Сбрасываем все возможные цветовые пары
+    for (int i = 1; i <= 8; i++) {
+        attroff(COLOR_PAIR(i));
+    }
+    
+    switch (objectType) {
+    case 1: // SNAKE1
+        attron(COLOR_PAIR(snake_colors[0]));
+        break;
+    case 2: // SNAKE2
+        attron(COLOR_PAIR(snake_colors[1]));
+        break;
+    case 3: // FOOD
+        attron(COLOR_PAIR(8));  // еда всегда 8
+        break;
+    default:
+        
+        break;
+    }
+}
+
 // startMenu() 
 int startMenu(void)
 {
