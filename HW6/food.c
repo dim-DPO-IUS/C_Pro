@@ -1,4 +1,5 @@
 #include "food.h"
+#include "snake.h"
 #include <stdlib.h>
 #include <time.h>
 

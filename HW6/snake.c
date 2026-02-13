@@ -2,7 +2,7 @@
 #include "food.h"  
 
 #ifndef MIN_Y
-#define MIN_Y 2
+// #define MIN_Y 2
 #endif
 
 void initTail(tail_t t[], size_t size)
