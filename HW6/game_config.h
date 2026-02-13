@@ -38,5 +38,7 @@ extern int can_eat_snakes;
 extern int sound_enabled;
 extern int snake_colors[2];
 extern struct control_buttons default_controls[CONTROLS];
+// поведение при самопересечении
+extern int self_collision_enabled;  // 1 - гибнет, 0 - не гибнет
 
 #endif

@@ -98,6 +98,8 @@ int startMenu(void)
     char* color_names[] = { "Green", "Red", "Blue", "Yellow", "Magenta", "Cyan", "White" };
     int num_colors = 7;
     int key;
+    
+    int self_collision_option = self_collision_enabled;
 
     while (1)
     {
@@ -105,9 +107,12 @@ int startMenu(void)
         attron(A_BOLD);
         mvprintw(2, 10, "=== DOUBLE SNAKE GAME ===");
         attroff(A_BOLD);
-        mvprintw(3, 5, "Sound: %s", sound_enabled ? "ON" : "OFF");
-        mvprintw(5, 5, "Select snake for color configuration:");
         
+        // Статус строка
+        mvprintw(3, 5, "Sound: %s", sound_enabled ? "ON" : "OFF");
+        
+        // Выбор змейки для настройки цвета
+        mvprintw(5, 5, "Select snake for color configuration:");
         for (int i = 0; i < 2; i++)
         {
             if (i == selected_snake) attron(A_REVERSE);
@@ -115,6 +120,7 @@ int startMenu(void)
             if (i == selected_snake) attroff(A_REVERSE);
         }
 
+        // Цвет для выбранной змейки
         mvprintw(9, 5, "Color for snake %d:", selected_snake + 1);
         for (int i = 0; i < num_colors; i++)
         {
@@ -125,50 +131,92 @@ int startMenu(void)
             attroff(COLOR_PAIR(available_colors[i]));
         }
 
+        // Информация об управлении
         mvprintw(13, 5, "Current controls:");
         mvprintw(14, 8, "Snake 1: Arrow keys");
         mvprintw(15, 8, "Snake 2: WASD keys");
-        mvprintw(16, 5, "New mechanic:");
-        mvprintw(17, 8, "You can eat another snake! +50 points");
-        mvprintw(19, 5, "Options:");
         
-        const char* options[] = { "Start Game", "Restart", "Sound ON/OFF", "Exit" };
-        for (int i = 0; i < 4; i++)
+        // Информация о механиках
+        mvprintw(16, 5, "Game mechanics:");
+        mvprintw(17, 8, "• You can eat another snake! +50 points");
+        
+        // Опции меню (ТЕПЕРЬ 5 ОПЦИЙ!)
+        mvprintw(19, 5, "Options:");
+        const char* options[] = { 
+            "Start Game", 
+            "Restart", 
+            "Self collision: OFF",  // индекс 2
+            "Sound ON/OFF",          // индекс 3
+            "Exit"                   // индекс 4
+        };
+        
+        // Меняем текст опции в зависимости от состояния
+        if (self_collision_option)
+            options[2] = "Self collision: ON";
+        else
+            options[2] = "Self collision: OFF";
+        
+        for (int i = 0; i < 5; i++)  // теперь 5 опций
         {
             if (i == selected_option) attron(A_REVERSE);
             mvprintw(21 + i, 8, "%s", options[i]);
             if (i == selected_option) attroff(A_REVERSE);
         }
 
-        mvprintw(26, 5, "Menu controls:");
-        mvprintw(27, 8, "Arrow keys ↑↓ - navigation, ENTER - select, TAB - switch snakes");
-        mvprintw(28, 8, "M - toggle sound");
+        // Управление меню
+        mvprintw(27, 5, "Menu controls:");
+        mvprintw(28, 8, "↑↓ - navigate, ENTER - select, TAB - switch snakes");
+        mvprintw(29, 8, "← → - change color");
+        mvprintw(30, 8, "M - toggle sound anywhere");
+        
         refresh();
 
         key = getch();
         switch (key)
         {
-        case KEY_UP: selected_option = (selected_option - 1 + 4) % 4; break;
-        case KEY_DOWN: selected_option = (selected_option + 1) % 4; break;
+        case KEY_UP: 
+            selected_option = (selected_option - 1 + 5) % 5;  // теперь 5 опций
+            break;
+        case KEY_DOWN: 
+            selected_option = (selected_option + 1) % 5; 
+            break;
         case KEY_LEFT:
-            if (selected_option == 0)
-                color_index[selected_snake] = (color_index[selected_snake] - 1 + num_colors) % num_colors;
-            break;
         case KEY_RIGHT:
-            if (selected_option == 0)
-                color_index[selected_snake] = (color_index[selected_snake] + 1) % num_colors;
+            // Меняем цвет только если выбран пункт цветовой настройки (selected_snake активен)
+            if (selected_option == 0 && selected_snake < 2)
+            {
+                if (key == KEY_LEFT)
+                    color_index[selected_snake] = (color_index[selected_snake] - 1 + num_colors) % num_colors;
+                else
+                    color_index[selected_snake] = (color_index[selected_snake] + 1) % num_colors;
+            }
             break;
-        case '\t': selected_snake = (selected_snake + 1) % 2; break;
+        case '\t': 
+            selected_snake = (selected_snake + 1) % 2;
+            break;
         case 'm': case 'M':
             sound_enabled = !sound_enabled;
             if (sound_enabled) playSound(4);
             break;
         case '\n': case '\r':
-            for (int i = 0; i < 2; i++) snake_colors[i] = available_colors[color_index[i]];
-            if (selected_option == 0) { playSound(4); return 1; }
-            if (selected_option == 1) return 2;
-            if (selected_option == 2) { sound_enabled = !sound_enabled; if (sound_enabled) playSound(4); continue; }
-            if (selected_option == 3) return 0;
+            snake_colors[0] = available_colors[color_index[0]];
+            snake_colors[1] = available_colors[color_index[1]];
+            self_collision_enabled = self_collision_option;
+            
+            if (selected_option == 0) { playSound(4); return 1; }  // Start Game
+            if (selected_option == 1) return 2;                    // Restart
+            if (selected_option == 2) { 
+                // Self collision toggle
+                self_collision_option = !self_collision_option; 
+                continue; 
+            }
+            if (selected_option == 3) { 
+                // Sound ON/OFF
+                sound_enabled = !sound_enabled; 
+                if (sound_enabled) playSound(4); 
+                continue; 
+            }
+            if (selected_option == 4) return 0;                    // Exit
             break;
         case 'q': case 'Q': return 0;
         case STOP_GAME: return 0;

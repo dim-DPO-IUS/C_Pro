@@ -187,7 +187,7 @@ int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y
             mvprintw(2, 0, "Snake %zd crashed into wall!              ", i + 1);
         }
 
-        if (isCrush(&snakes[i]))
+        if (self_collision_enabled && isCrush(&snakes[i]))
         {
             snakes[i].is_alive = 0;
             mvprintw(2, 30, "Snake %zd crashed into itself!         ", i + 1);

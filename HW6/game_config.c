@@ -13,3 +13,6 @@ struct control_buttons default_controls[CONTROLS] = {
     { 'S', 'W', 'A', 'D' },
     { 's', 'w', 'a', 'd' }
 };
+
+// поведение при самопересечении
+int self_collision_enabled = 0; // не гибнет
