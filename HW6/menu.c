@@ -9,7 +9,7 @@
 int game_running = 1;
 int can_eat_snakes = 1;
 int sound_enabled = 1;
-int snake_colors[2] = { 1, 6 };
+int snake_colors[7] = { 1, 2, 4, 3, 5, 6, 7 };  // Соответствует available_colors
 
 // playSound() - без изменений
 void playSound(int type)
