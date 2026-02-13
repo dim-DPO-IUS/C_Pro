@@ -6,7 +6,7 @@
 extern int game_running;
 extern int can_eat_snakes;
 extern int sound_enabled;
-extern int snake_colors[];
+extern int snake_colors[2];
 
 void playSound(int type);
 void showWelcomeScreen(void);

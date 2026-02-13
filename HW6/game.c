@@ -62,6 +62,7 @@ void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size)
     {
         int start_x = 10 + i * 20;
         int start_y = 10 + i * 5;
+        // от 0 до 6 при любом i
         int color_idx = i % 7;
 
         initSnake(&snakes[i], start_size, start_x, start_y, snake_colors[color_idx]);
@@ -139,6 +140,7 @@ int checkSnakeEatSnake(snake_t snakes[], size_t num_snakes)
         {
             if (i == j || !snakes[j].is_alive) continue;
 
+            // Случай 1: голова змейки i съела голову змейки j
             if (snakes[i].x == snakes[j].x && snakes[i].y == snakes[j].y)
             {
                 snakes[j].is_alive = 0;
@@ -150,7 +152,8 @@ int checkSnakeEatSnake(snake_t snakes[], size_t num_snakes)
                 getmaxyx(stdscr, max_y, max_x);
                 mvprintw(3, 0, "Snake %zd ate snake %zd! +50 points!", i + 1, j + 1);
             }
-
+            
+            // Случай 2: голова змейки i откусила хвост змейки j
             for (size_t k = 0; k < snakes[j].tsize; k++)
             {
                 if (snakes[i].x == snakes[j].tail[k].x && snakes[i].y == snakes[j].tail[k].y)

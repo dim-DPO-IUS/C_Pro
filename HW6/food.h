@@ -17,6 +17,8 @@ struct food {
     uint8_t enable;
 };
 
+extern struct food foods[MAX_FOOD_SIZE];
+
 void initFood(struct food f[], size_t size);
 void refreshFood(struct food f[], size_t size, int max_x, int max_y);
 int haveEat(struct snake_t *head, struct food f[]);

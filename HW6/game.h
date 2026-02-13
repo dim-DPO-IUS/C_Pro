@@ -11,7 +11,6 @@
 #define GAME_SPEED 100
 
 extern struct control_buttons default_controls[CONTROLS];
-extern struct food foods[MAX_FOOD_SIZE];
 
 int getch_with_timeout(int milliseconds);
 void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size);

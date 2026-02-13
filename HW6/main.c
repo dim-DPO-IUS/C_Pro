@@ -100,6 +100,7 @@ int main()
     init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
     init_pair(6, COLOR_CYAN, COLOR_BLACK);
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
+    // цвет еды
     init_pair(8, COLOR_RED, COLOR_BLACK);
 
     initFood(foods, MAX_FOOD_SIZE);
