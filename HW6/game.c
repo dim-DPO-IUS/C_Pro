@@ -1,3 +1,4 @@
+#include "game_config.h"
 #include "game.h"
 #include "snake.h"
 #include "menu.h"
@@ -8,12 +9,6 @@
 #include <string.h>
 #include <unistd.h>
 
-struct control_buttons default_controls[CONTROLS] = {
-    { KEY_DOWN, KEY_UP, KEY_LEFT, KEY_RIGHT },
-    { 's', 'w', 'a', 'd' },
-    { 'S', 'W', 'A', 'D' },
-    { 's', 'w', 'a', 'd' }
-};
 
 int getch_with_timeout(int milliseconds)
 {

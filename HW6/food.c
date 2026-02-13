@@ -1,9 +1,9 @@
+#include "game_config.h"
 #include "food.h"
 #include "snake.h"
 #include <stdlib.h>
 #include <time.h>
 
-struct food foods[MAX_FOOD_SIZE];
 
 void initFood(struct food f[], size_t size)
 {

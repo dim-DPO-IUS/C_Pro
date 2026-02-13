@@ -1,28 +1,19 @@
 #ifndef SNAKE_H
 #define SNAKE_H
 
+#include "game_config.h"
 #include <ncursesw/ncurses.h>
 #include <wchar.h>
 #include <inttypes.h>
 #include <stdlib.h>
 
-// Forward declaration вместо включения food.h
+
 struct food;
 
 enum { LEFT = 1, UP, RIGHT, DOWN, STOP_GAME = KEY_F(10) };
-enum {
-    MAX_TAIL_SIZE = 100,
-    START_TAIL_SIZE = 3
-};
+
 
 #define MIN_Y 2
-
-struct control_buttons {
-    int down;
-    int up;
-    int left;
-    int right;
-};
 
 typedef struct tail_t {
     int x;

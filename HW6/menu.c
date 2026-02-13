@@ -1,3 +1,4 @@
+#include "game_config.h"
 #include "menu.h"
 #include "snake.h"
 #include <stdio.h>
@@ -5,16 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-// Глобальные переменные
-int game_running = 1;
-int can_eat_snakes = 1;
-int sound_enabled = 1;
-// массив цветов для тех змеек, которые в игре (2 штуки)
-// snake_colors хранит номера color_pair
-// ncurses цвет всегда парный: цвет текста + цвет фона 
-int snake_colors[2] = { 1, 6 };
-
-// playSound() - без изменений
+// playSound() 
 void playSound(int type)
 {
     if (!sound_enabled) return;
@@ -51,7 +43,7 @@ void playSound(int type)
     }
 }
 
-// showWelcomeScreen() - без изменений
+// showWelcomeScreen() 
 void showWelcomeScreen(void)
 {
     clear();
@@ -96,7 +88,7 @@ void showWelcomeScreen(void)
     getch();
 }
 
-// startMenu() - без изменений
+// startMenu() 
 int startMenu(void)
 {
     int selected_snake = 0;

@@ -15,6 +15,22 @@
 #define CONTROLS 4
 #define NUM_SNAKES 2
 
+// ==================== СТРУКТУРЫ ====================
+struct food {
+    int x;
+    int y;
+    time_t put_time;
+    char point;
+    uint8_t enable;
+};
+
+struct control_buttons {
+    int down;
+    int up;
+    int left;
+    int right;
+};
+
 // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
 extern struct food foods[MAX_FOOD_SIZE];
 extern int game_running;

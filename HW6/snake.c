@@ -1,9 +1,6 @@
+#include "game_config.h"
 #include "snake.h"
 #include "food.h"  
-
-#ifndef MIN_Y
-// #define MIN_Y 2
-#endif
 
 void initTail(tail_t t[], size_t size)
 {

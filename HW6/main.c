@@ -66,6 +66,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "game_config.h"
 #include "snake.h"
 #include "menu.h"
 #include "game.h"

@@ -3,14 +3,10 @@
 
 #include <ncursesw/ncurses.h>
 #include <inttypes.h>
+#include "game_config.h"
 #include "snake.h"
 #include "food.h"
 
-#define NUM_SNAKES 2
-#define CONTROLS 4
-#define GAME_SPEED 100
-
-extern struct control_buttons default_controls[CONTROLS];
 
 int getch_with_timeout(int milliseconds);
 void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size);
