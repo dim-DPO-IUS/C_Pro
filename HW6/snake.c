@@ -1,5 +1,5 @@
 #include "snake.h"
-#include "food.h"  // Добавляем для struct food
+#include "food.h"  
 
 #ifndef MIN_Y
 #define MIN_Y 2
@@ -79,7 +79,7 @@ int isCrush(snake_t* snake)
     return 0;
 }
 
-int checkFood(snake_t* snake, struct food* food)  // Исправляем тип
+int checkFood(snake_t* snake, struct food* food)  
 {
     if (snake->x == food->x && snake->y == food->y)
     {

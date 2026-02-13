@@ -73,8 +73,6 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1
 
-// Убираем дублирующие определения констант
-
 int main()
 {
     setlocale(LC_ALL, "");

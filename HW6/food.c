@@ -75,3 +75,10 @@ int haveEat(struct snake_t *head, struct food f[])
     }
     return 0;
 }
+
+void drawFood(struct food *food)
+{
+    attron(COLOR_PAIR(8));
+    mvprintw(food->y, food->x, "%c", food->point);
+    attroff(COLOR_PAIR(8));
+}

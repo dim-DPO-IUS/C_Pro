@@ -79,8 +79,6 @@ void initAllSnakes(snake_t snakes[], size_t num_snakes, size_t start_size)
     }
 }
 
-// Удаляем неиспользуемые функции spawnFood() и drawFood()
-
 void changeAllDirections(snake_t snakes[], size_t num_snakes, const int32_t key)
 {
     for (size_t i = 0; i < num_snakes; i++)
@@ -119,8 +117,6 @@ void drawAllSnakes(snake_t snakes[], size_t num_snakes)
         attroff(COLOR_PAIR(snakes[i].color_pair));
     }
 }
-
-// Удаляем неиспользуемую функцию checkAllFood()
 
 int checkWallCollision(snake_t* snake, int max_x, int max_y)
 {
@@ -193,7 +189,6 @@ int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y
             mvprintw(2, 0, "Snake %zd crashed into wall!              ", i + 1);
         }
 
-        // Исправляем: теперь isCrush() реально проверяет столкновение
         if (isCrush(&snakes[i]))
         {
             snakes[i].is_alive = 0;
@@ -282,9 +277,7 @@ void playGame(snake_t snakes[])
         {
             if (foods[i].enable)
             {
-                attron(COLOR_PAIR(8));
-                mvprintw(foods[i].y, foods[i].x, "%c", foods[i].point);
-                attroff(COLOR_PAIR(8));
+                drawFood(&foods[i]);
             }
         }
 

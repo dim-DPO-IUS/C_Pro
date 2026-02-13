@@ -22,6 +22,4 @@ int checkSnakeEatSnake(snake_t snakes[], size_t num_snakes);
 int checkAllCollisions(snake_t snakes[], size_t num_snakes, int max_x, int max_y);
 void playGame(snake_t snakes[]);
 
-// Удаляем неиспользуемые объявления функций
-
 #endif
