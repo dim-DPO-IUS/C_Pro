@@ -40,6 +40,64 @@ static float test_sin(float x) {
 /*                    ТЕСТ 1: ПОИСК КОРНЕЙ ВСЕМИ МЕТОДАМИ                     */
 /*============================================================================*/
 
+// void test_roots_all_methods(float eps) {
+//     output_test_roots_header(eps);
+    
+//     float xmin = SEARCH_LEFT, xmax = SEARCH_RIGHT;
+//     int steps = SEARCH_STEPS;
+    
+//     const char* method_names[] = {
+//         "Деление отрезка",
+//         "Метод хорд",
+//         "Метод касательных",
+//         "Комбинированный"
+//     };
+    
+//     Point points[4][MAX_POINTS];
+//     int counts[4];
+    
+//     for (int method = 0; method < 4; method++) {
+//         counts[method] = find_all_intersections(xmin, xmax, steps, eps,
+//                                                 points[method], MAX_POINTS, method);
+//         sort_points(points[method], counts[method]);
+//     }
+    
+//     output_test_roots_table_header();
+    
+//     for (int m = 0; m < 4; m++) {
+//         float avg_error = 0.0f;
+//         int matched = 0;
+        
+//         for (int i = 0; i < counts[0]; i++) {
+//             float x_etalon = points[0][i].x;
+//             float min_error = 1e10f;
+            
+//             for (int j = 0; j < counts[m]; j++) {
+//                 float error = fabsf(points[m][j].x - x_etalon);
+//                 if (error < min_error) min_error = error;
+//             }
+            
+//             if (min_error < TEST_MATCH_THRESHOLD) {
+//                 avg_error += min_error;
+//                 matched++;
+//             }
+//         }
+        
+//         if (matched > 0) avg_error /= matched;
+        
+//         int total_iter = 0;
+//         for (int j = 0; j < counts[m]; j++) total_iter += points[m][j].iterations;
+        
+//         output_test_roots_row(counts[m], avg_error, total_iter, method_names[m]);
+//     }
+    
+//     output_test_roots_table_footer();
+// }
+
+/*============================================================================*/
+/*                    ТЕСТ 1: ПОИСК КОРНЕЙ ВСЕМИ МЕТОДАМИ                     */
+/*============================================================================*/
+
 void test_roots_all_methods(float eps) {
     output_test_roots_header(eps);
     
@@ -55,13 +113,43 @@ void test_roots_all_methods(float eps) {
     
     Point points[4][MAX_POINTS];
     int counts[4];
+    int total_iter[4] = {0, 0, 0, 0};
     
+    // Массивы для координат
+    float f1f3_left[4], f2f3_left[4], f1f3_right[4], f2f3_right[4], f1f2[4];
+    
+    // Поиск точек каждым методом
     for (int method = 0; method < 4; method++) {
         counts[method] = find_all_intersections(xmin, xmax, steps, eps,
                                                 points[method], MAX_POINTS, method);
         sort_points(points[method], counts[method]);
+        
+        // Подсчет общего числа итераций
+        total_iter[method] = 0;
+        for (int j = 0; j < counts[method]; j++) {
+            total_iter[method] += points[method][j].iterations;
+        }
+        
+        // Инициализация координат
+        f1f3_left[method] = f2f3_left[method] = 
+        f1f3_right[method] = f2f3_right[method] = f1f2[method] = 0.0f;
+        
+        // Извлечение координат по типу
+        for (int j = 0; j < counts[method]; j++) {
+            if (points[method][j].pair_type == 2 && points[method][j].x < 0)
+                f1f3_left[method] = points[method][j].x;
+            else if (points[method][j].pair_type == 3 && points[method][j].x < 0)
+                f2f3_left[method] = points[method][j].x;
+            else if (points[method][j].pair_type == 2 && points[method][j].x > 0)
+                f1f3_right[method] = points[method][j].x;
+            else if (points[method][j].pair_type == 3 && points[method][j].x > 0)
+                f2f3_right[method] = points[method][j].x;
+            else if (points[method][j].pair_type == 1)
+                f1f2[method] = points[method][j].x;
+        }
     }
     
+    // Вывод сводной статистики (первая таблица)
     output_test_roots_table_header();
     
     for (int m = 0; m < 4; m++) {
@@ -85,14 +173,19 @@ void test_roots_all_methods(float eps) {
         
         if (matched > 0) avg_error /= matched;
         
-        int total_iter = 0;
-        for (int j = 0; j < counts[m]; j++) total_iter += points[m][j].iterations;
-        
-        output_test_roots_row(counts[m], avg_error, total_iter, method_names[m]);
+        output_test_roots_row(counts[m], avg_error, total_iter[m], method_names[m]);
     }
     
     output_test_roots_table_footer();
+    
+    // Вывод новой таблицы с координатами
+    output_methods_comparison_table(method_names,
+                                   f1f3_left, f2f3_left,
+                                   f1f3_right, f2f3_right,
+                                   f1f2);
 }
+
+
 
 /*============================================================================*/
 /*               ТЕСТ 2: ИНТЕГРИРОВАНИЕ ВСЕМИ МЕТОДАМИ                      */
