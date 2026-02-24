@@ -9,20 +9,6 @@
 #include <stdio.h>
 
 /*============================================================================*/
-/*                            СЧЁТЧИК ИТЕРАЦИЙ                               */
-/*============================================================================*/
-
-static int s_root_iterations = 0;
-
-void root_reset_iterations(void) {
-    s_root_iterations = 0;
-}
-
-void root_set_iterations(int iter) {
-    s_root_iterations = iter;
-}
-
-/*============================================================================*/
 /*                            МЕТОД ДЕЛЕНИЯ ОТРЕЗКА                          */
 /*============================================================================*/
 
@@ -332,8 +318,6 @@ float root(function f, function g, float a, float b, float eps, int method,
     if (iterations != NULL) {
         *iterations = local_iter;
     }
-    
-    root_set_iterations(local_iter);
     
     return result;
 }

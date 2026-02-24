@@ -8,20 +8,6 @@
 #include <stdio.h>
 
 /*============================================================================*/
-/*                            СЧЁТЧИК ИТЕРАЦИЙ                               */
-/*============================================================================*/
-
-static int s_integral_iterations = 0;
-
-void integral_reset_iterations(void) {
-    s_integral_iterations = 0;
-}
-
-void integral_set_iterations(int iter) {
-    s_integral_iterations = iter;
-}
-
-/*============================================================================*/
 /*                            МЕТОД ПРЯМОУГОЛЬНИКОВ                          */
 /*============================================================================*/
 
@@ -158,8 +144,6 @@ float integral(function f, float a, float b, float eps, int method, int* iterati
             result = integral_trapezoid(xl, xr, eps, f, &local_iter);
             break;
     }
-    
-    integral_set_iterations(local_iter);
     
     if (iterations != NULL) *iterations = local_iter;
     return result;
