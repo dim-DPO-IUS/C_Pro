@@ -2,7 +2,6 @@
 # Целевая программа: area
 
 CC = gcc
-# CFLAGS = -Wall -Wextra -O2 -Iinclude -Iinclude/math -Iinclude/geometry -Iinclude/ui
 CFLAGS = -Wall -Wextra -Iinclude
 LDFLAGS = -lm
 TARGET = area
@@ -15,6 +14,7 @@ OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 
 all: $(TARGET)
+	@echo "Сборка завершена. Исполняемый файл: $(TARGET)"
 
 # Линковка
 $(TARGET): $(OBJ)
@@ -31,11 +31,18 @@ $(TARGET): $(OBJ)
 clean:
 	rm -f $(TARGET) $(OBJ) $(DEP)
 	rm -f *.dat *.gp *.png results.log
+	@echo "Очистка завершена"
 
-# Цели для запуска
+# Дополнительные цели для запуска
 run: $(TARGET)
 	./$(TARGET)
 
+run-h: $(TARGET)
+	./$(TARGET) -h
+
+run-a: $(TARGET)
+	./$(TARGET) -a
+	
 run-p: $(TARGET)
 	./$(TARGET) -p
 
@@ -45,11 +52,7 @@ run-i: $(TARGET)
 run-v: $(TARGET)
 	./$(TARGET) -v
 
-# Отладка - показать найденные файлы
-debug:
-	@echo "Найденные исходные файлы:"
-	@echo "$(SRC)" | tr ' ' '\n'
-	@echo "\nОбъектные файлы:"
-	@echo "$(OBJ)" | tr ' ' '\n'
+run-t: $(TARGET)
+	./$(TARGET) -t 1e-6 1e-4
 
-.PHONY: all clean run run-p run-i run-v debug
+.PHONY: all clean run run-v run-t
