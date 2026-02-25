@@ -6,8 +6,8 @@
 #ifndef UI_OUTPUT_H
 #define UI_OUTPUT_H
 
-#include "constants.h"
-#include "math/functions.h"
+#include "../constants.h"
+#include "./math/functions.h"
 #include <stdio.h>
 
 /*============================================================================*/
