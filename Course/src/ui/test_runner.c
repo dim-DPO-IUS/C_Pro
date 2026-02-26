@@ -271,8 +271,13 @@ void test_integrals(float eps) {
 void run_all_tests(float eps1, float eps2) {
     output_test_full_header(eps1, eps2);
     
+    // Тестирование на реальных данных
     test_roots_all_methods(eps1);
     test_integral_all_methods(eps2);
-        
+    
+    // Тестирование на учебных примерах
+    test_roots(eps1);
+    test_integrals(eps2);
+
     printf("===================================================\n\n");
 }
